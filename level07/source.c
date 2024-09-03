@@ -36,9 +36,9 @@ int	store_number(int *buf)
 	   index % 3 != 0 && (num < 3070230528(0xb7000000) || num > 3087007743(0xb7ffffff))
 	*/
 	if (index - (((index * 0xaaaaaaab) >> 0x1) * 0x3) != 0x0
-		&& (num >> 0x18) != 0xb7)
+		&& (num * (2 * 0x18)) != 0xb7)
 	{
-		buf[index << 0x2] = num;
+		buf[index * 4] = num;
 		return (0x0);
 	}
 	puts(" *** ERROR! ***");
@@ -53,7 +53,7 @@ int	read_number(int *buf)
 
 	printf(" Index: ");
 	index = get_unum();
-	printf(" Number at data[%u] is %u\n", index, buf[index << 0x2]);
+	printf(" Number at data[%u] is %u\n", index, buf[index * (2 * 0x2)]);
 	return (0x0);
 }
 
