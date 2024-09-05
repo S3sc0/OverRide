@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+
+void	log_wrapper(FILE *log_f /*rbp-0x118*/, char *s /*rbp-0x120*/, char *av1 /*rbp-0x128*/)
+{
+	char	msg[0xfe];		/* rbp-0x110 */
+
+	strcpy(msg, s);
+	snprintf(msg+strlen(msg), 0xfe - strlen(msg), av1);
+	msg[strcspn(msg, "\n")] = 0x0;
+	fprintf(log_f, "LOG: %s\n", msg);
+}
+
+int	main(int ac /*rbp-0x94*/, char **av /*rbp-0xa0*/)
+{
+	char	path[0x63];			/* rbp-0x70 */
+	int		c;					/* rbp-0x71 */
+	int		fd;					/* rbp-0x78 */
+	FILE	*f;					/* rbp-0x80 */
+	FILE	*log_f;				/* rbp-0x88 */
+
+	if (ac != 0x2)
+	{
+		printf("Usage: %s filename\n", *av);
+	}
+	log_f = fopen("./backups/.log", "w");
+	if (log_f == NULL)
+	{
+		printf("ERROR: Failed to open %s\n", "./backups/.log");
+		exit(0x1);
+	}
+	log_wrapper(log_f, "Starting back up: ", av[1]);
+	f = fopen(av[1], "r");
+	if (f == 0x0)
+	{
+		printf("ERROR: Failed to open %s\n", av[1]);
+		exit(0x1);
+	}
+	strcpy(path, "./backups/");
+	strncat(path, av[1], 0x63 - strlen("./backups/"));
+	fd = open(path, O_CREAT|O_WRONLY|O_EXCL, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
+	if (fd == 0x0)
+	{
+		printf("ERROR: Failed to open %s%s\n", "./backups/", av[1]);
+		exit(0x1);
+	}
+	puts(path);
+	while (1)
+	{
+		c = fgetc(f);
+		if (c == -1)
+			break ;
+		write(fd, &c, 0x1);
+	}
+	log_wrapper(log_f, "Finished back up ", av[1]);
+	fclose(f);
+	close(fd);
+	return (0);
+}
